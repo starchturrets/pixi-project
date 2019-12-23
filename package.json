@@ -26,7 +26,8 @@
   },
   "prettier": {
     "singleQuote": true,
-    "trailingComma": "all"
+    "trailingComma": "all",
+    "printWidth": 120
   },
   "dependencies": {
     "pixi.js": "^5.2.0"

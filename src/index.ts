@@ -1,60 +1,56 @@
 import * as PIXI from 'pixi.js';
 import scaleToWindow from './scaleToWindow';
 import Bump from './bump';
-import Square from './square';
+import SQUARE from './square';
 
-PIXI.settings.SPRITE_MAX_TEXTURES = Math.min(
-  PIXI.settings.SPRITE_MAX_TEXTURES,
-  16,
-);
+PIXI.settings.SPRITE_MAX_TEXTURES = Math.min(PIXI.settings.SPRITE_MAX_TEXTURES, 16);
 
-class Game {
-  app: PIXI.Application;
+class GAME extends PIXI.Application {
+  player: SQUARE;
 
-  graphics: PIXI.Graphics;
-
-  player: Square;
+  background: PIXI.Graphics;
 
   constructor() {
-    this.app = new PIXI.Application({
-      height: 800,
-      width: 800,
-    });
-    this.app.renderer.backgroundColor = 0x3cb371;
-    window.addEventListener('resize', () => {
-      scaleToWindow(this.app.view, 0x3cb371);
-    });
+    super({ height: 800, width: 800 });
+    this.renderer.backgroundColor = 0x3cb371;
 
-    document.body.appendChild(this.app.view);
-    scaleToWindow(this.app.view, 0x061639);
-    this.graphics = new PIXI.Graphics();
-    this.player = new Square(this.graphics, this.app, 20);
+    window.addEventListener('resize', () => {
+      scaleToWindow(this.view, 0x3cb371);
+    });
+    scaleToWindow(this.view, 0x061639);
+
+    document.body.appendChild(this.view);
+    this.background = new PIXI.Graphics();
+    this.drawBackground();
+    this.player = new SQUARE(this, 20);
   }
+
+  drawBackground = () => {
+    const { background }: { background: PIXI.Graphics } = this;
+    background.beginFill(0x454545);
+    // draw a rectangle
+    background.drawRect(0, 0, this.view.width, this.view.height);
+    background.interactive = true;
+    background.on('click', console.log);
+    this.stage.addChild(background);
+  };
 
   loop = () => {
     const gameOver = false;
-    this.graphics.clear();
-    this.player.draw();
+    this.player.move();
     this.collisionDetection();
     if (!gameOver) requestAnimationFrame(this.loop);
   };
 
   collisionDetection = () => {
-    if (
-      this.player.x + this.player.size > this.app.view.width
-      || this.player.x < 0
-    ) {
-      this.player.dx = -this.player.dx;
-    }
-    if (
-      this.player.y + this.player.size > this.app.view.height
-      || this.player.y < 0
-    ) {
-      this.player.dy = -this.player.dy;
+    const {
+      player: { y, velocityY, size },
+    } = this;
+    if (y + size + velocityY >= this.view.height || y <= 0) {
+      this.player.velocityY = 0;
     }
   };
 }
 
-const canvas = new Game();
-canvas.loop();
-canvas.app.view.addEventListener('click', canvas.player.jump);
+const canvas = new GAME();
+requestAnimationFrame(canvas.loop);
